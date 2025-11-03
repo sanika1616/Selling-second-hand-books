@@ -1,2 +1,353 @@
-# Selling-second-hand-books
-Selling second hand books
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SecondLeaf — Secondhand Books Marketplace</title>
+  <meta name="description" content="Buy and sell secondhand books easily. Search, filter, add to cart, and list your books." />
+  <style>
+    :root{
+      --bg:#f8faf8; --card:#ffffff; --accent:#2b9348; --muted:#6b7280; --glass: rgba(255,255,255,0.6);
+      --maxw:1100px; --radius:12px; --shadow: 0 6px 20px rgba(16,24,40,0.08);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#eef6ec 0%,var(--bg) 100%);color:#0f172a}
+    .container{max-width:var(--maxw);margin:28px auto;padding:20px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#64b26b);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:0;color:var(--muted);font-size:13px}
+    nav{display:flex;gap:8px}
+    button.btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;border:0;cursor:pointer;box-shadow:var(--shadow)}
+    button.ghost{background:transparent;border:1px solid rgba(15,23,42,0.06);padding:9px 12px;border-radius:10px}/* search & filters */
+.controls{display:flex;gap:12px;align-items:center;margin:18px 0;flex-wrap:wrap}
+.search{flex:1;display:flex;background:var(--card);padding:10px;border-radius:12px;box-shadow:var(--shadow);align-items:center}
+.search input{border:0;outline:0;font-size:15px;padding:8px;width:100%}
+.filters{display:flex;gap:8px;align-items:center}
+select, .catbtn{padding:8px 10px;border-radius:10px;border:1px solid rgba(15,23,42,0.06);background:transparent}
+
+/* grid */
+.grid{display:grid;grid-template-columns:1fr 340px;gap:18px}
+.catalog{background:transparent}
+.books{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.card{background:var(--card);padding:12px;border-radius:12px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px}
+.cover{height:220px;border-radius:8px;background:#eee;display:flex;align-items:center;justify-content:center;font-weight:600;color:#9ca3af}
+.meta{font-size:13px;color:var(--muted)}
+.price{font-weight:700}
+.card .actions{margin-top:auto;display:flex;gap:8px}
+
+/* cart */
+.cart{background:var(--card);padding:14px;border-radius:12px;box-shadow:var(--shadow);position:sticky;top:28px;height:fit-content}
+.cart h3{margin:0 0 8px 0}
+.cart-items{display:flex;flex-direction:column;gap:8px;max-height:320px;overflow:auto;padding-right:6px}
+.cart-row{display:flex;gap:8px;align-items:center}
+.qty{display:inline-flex;align-items:center;gap:6px}
+
+/* modal */
+.modal-back{position:fixed;inset:0;background:rgba(2,6,23,0.4);display:none;align-items:center;justify-content:center;padding:24px}
+.modal{width:100%;max-width:760px;background:var(--card);border-radius:14px;padding:18px;box-shadow:0 18px 60px rgba(2,6,23,0.5)}
+
+/* forms */
+form.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input, textarea{padding:10px;border:1px solid rgba(15,23,42,0.06);border-radius:8px}
+
+footer{margin-top:28px;padding:18px;border-radius:12px;background:transparent;display:flex;justify-content:space-between;align-items:center;color:var(--muted)}
+
+/* responsive */
+@media (max-width:900px){.grid{grid-template-columns:1fr}.cart{position:relative;top:auto}}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">SL</div>
+        <div>
+          <h1>SecondLeaf</h1>
+          <p class="lead">A friendly marketplace for pre-loved books</p>
+        </div>
+      </div><nav>
+    <button class="ghost" id="loginBtn">Login / Signup</button>
+    <button class="btn" id="sellBtn">Sell your book</button>
+  </nav>
+</header>
+
+<section class="controls">
+  <div class="search">
+    <svg width="18" height="18" style="margin-right:8px" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="11" cy="11" r="6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle></svg>
+    <input id="searchInput" placeholder="Search by title, author, ISBN..." />
+  </div>
+
+  <div class="filters">
+    <select id="categoryFilter">
+      <option value="all">All categories</option>
+      <option value="fiction">Fiction</option>
+      <option value="nonfiction">Non-fiction</option>
+      <option value="education">Education</option>
+      <option value="comics">Comics</option>
+      <option value="selfhelp">Self-help</option>
+    </select>
+
+    <select id="sortBy">
+      <option value="newest">Newest</option>
+      <option value="priceLow">Price: Low → High</option>
+      <option value="priceHigh">Price: High → Low</option>
+    </select>
+
+    <button class="ghost" id="clearBtn">Clear</button>
+  </div>
+</section>
+
+<main class="grid">
+  <section class="catalog">
+    <div class="books" id="booksGrid">
+      <!-- Book cards injected by JS -->
+    </div>
+  </section>
+
+  <aside class="cart">
+    <h3>Your Cart</h3>
+    <div class="cart-items" id="cartItems"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+      <strong>Total:</strong>
+      <strong id="cartTotal">₹0</strong>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px">
+      <button class="btn" id="checkoutBtn">Checkout</button>
+      <button class="ghost" id="emptyCartBtn">Empty</button>
+    </div>
+  </aside>
+</main>
+
+<footer>
+  <div>© <span id="year"></span> SecondLeaf — Made with ❤ for book lovers</div>
+  <div style="font-size:13px">Powered by simple static HTML/CSS/JS • Data persists in your browser</div>
+</footer>
+
+  </div>  <!-- Modal wrapper -->  <div class="modal-back" id="modalBack">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div id="modalContent"></div>
+      <div style="text-align:right;margin-top:12px"><button class="ghost" id="closeModal">Close</button></div>
+    </div>
+  </div>  <script>
+    // --- sample data ---
+    const SAMPLE_BOOKS = [
+      {id: 'b1',title:'The Alchemist',author:'Paulo Coelho',category:'fiction',price:199,condition:'Good',desc:'A modern classic about following your dreams.'},
+      {id: 'b2',title:'Calculus Made Easy',author:'Silvanus P. Thompson',category:'education',price:299,condition:'Very Good',desc:'Friendly introduction to calculus.'},
+      {id: 'b3',title:'Atomic Habits',author:'James Clear',category:'selfhelp',price:249,condition:'Like New',desc:'Practical guide to building better habits.'},
+      {id: 'b4',title:'Maus',author:'Art Spiegelman',category:'comics',price:399,condition:'Good',desc:'Pulitzer-winning graphic novel.'},
+      {id: 'b5',title:'Sapiens',author:'Yuval Noah Harari',category:'nonfiction',price:299,condition:'Good',desc:'A brief history of humankind.'}
+    ];
+
+    // --- state in localStorage ---
+    const LS_BOOKS_KEY = 'secondleaf_books_v1';
+    const LS_CART_KEY = 'secondleaf_cart_v1';
+
+    const yearEl = document.getElementById('year'); yearEl.textContent = new Date().getFullYear();
+
+    // initialize storage
+    function loadBooks(){
+      const raw = localStorage.getItem(LS_BOOKS_KEY);
+      if(raw) return JSON.parse(raw);
+      localStorage.setItem(LS_BOOKS_KEY, JSON.stringify(SAMPLE_BOOKS));
+      return SAMPLE_BOOKS.slice();
+    }
+    let books = loadBooks();
+
+    function saveBooks(){ localStorage.setItem(LS_BOOKS_KEY, JSON.stringify(books)); }
+
+    // cart
+    function loadCart(){
+      const raw = localStorage.getItem(LS_CART_KEY);
+      if(!raw) return {};
+      return JSON.parse(raw);
+    }
+    let cart = loadCart();
+    function saveCart(){ localStorage.setItem(LS_CART_KEY, JSON.stringify(cart)); }
+
+    // --- rendering ---
+    const booksGrid = document.getElementById('booksGrid');
+    const cartItems = document.getElementById('cartItems');
+    const cartTotal = document.getElementById('cartTotal');
+
+    function formatINR(n){ return '₹' + Number(n).toLocaleString('en-IN'); }
+
+    function renderBooks(list){
+      booksGrid.innerHTML = '';
+      if(!list.length) { booksGrid.innerHTML = '<div style="padding:40px;color:var(--muted)">No books found — try a different search or category.</div>'; return }
+      list.forEach(b=>{
+        const card = document.createElement('article'); card.className='card';
+        card.innerHTML = `
+          <div class="cover">Cover<br/><small>${b.condition}</small></div>
+          <div>
+            <div style="font-weight:600">${escapeHtml(b.title)}</div>
+            <div class="meta">${escapeHtml(b.author)} • ${escapeHtml(cap(b.category))}</div>
+            <div class="price">${formatINR(b.price)}</div>
+          </div>
+          <div class="actions">
+            <button class="ghost" data-id="${b.id}" onclick="viewBook('${b.id}')">View</button>
+            <button class="btn" data-id="${b.id}" onclick="addToCart('${b.id}')">Add</button>
+          </div>
+        `;
+        booksGrid.appendChild(card);
+      })
+    }
+
+    function renderCart(){
+      cartItems.innerHTML='';
+      const ids = Object.keys(cart);
+      if(ids.length===0){ cartItems.innerHTML = '<div style="color:var(--muted)">Cart is empty</div>'; cartTotal.textContent='₹0'; return }
+      let total=0;
+      ids.forEach(id=>{
+        const qty = cart[id];
+        const b = books.find(x=>x.id===id);
+        if(!b) return;
+        total += b.price*qty;
+        const row = document.createElement('div'); row.className='cart-row';
+        row.innerHTML = `
+          <div style="flex:1">
+            <div style="font-weight:600">${escapeHtml(b.title)}</div>
+            <div class="meta">${escapeHtml(b.author)}</div>
+          </div>
+          <div class="qty">
+            <button class="ghost" onclick="changeQty('${id}', -1)">-</button>
+            <div>${qty}</div>
+            <button class="ghost" onclick="changeQty('${id}', 1)">+</button>
+          </div>
+          <div style="width:80px;text-align:right">${formatINR(b.price*qty)}</div>
+        `;
+        cartItems.appendChild(row);
+      })
+      cartTotal.textContent = formatINR(total);
+    }
+
+    // --- actions ---
+    function addToCart(id){ cart[id] = (cart[id]||0)+1; saveCart(); renderCart(); }
+    function changeQty(id, delta){ if(!cart[id]) return; cart[id]+=delta; if(cart[id]<=0) delete cart[id]; saveCart(); renderCart(); }
+    document.getElementById('emptyCartBtn').addEventListener('click', ()=>{ cart={}; saveCart(); renderCart(); });
+
+    document.getElementById('checkoutBtn').addEventListener('click', ()=>{
+      if(Object.keys(cart).length===0){ alert('Your cart is empty.'); return }
+      alert('This demo implements a local cart only. In a real site you would integrate payment and order management.');
+    });
+
+    // modal utilities
+    const modalBack = document.getElementById('modalBack');
+    const modalContent = document.getElementById('modalContent');
+    const closeModal = document.getElementById('closeModal');
+    function openModal(html){ modalContent.innerHTML = html; modalBack.style.display='flex'; }
+    function close(){ modalBack.style.display='none'; modalContent.innerHTML=''; }
+    closeModal.addEventListener('click', close);
+    modalBack.addEventListener('click', (e)=>{ if(e.target===modalBack) close(); });
+
+    // view book
+    function viewBook(id){
+      const b = books.find(x=>x.id===id);
+      if(!b) return;
+      openModal(`
+        <div style="display:flex;gap:18px;align-items:flex-start">
+          <div style="width:200px">
+            <div style="height:260px;background:#f3f4f6;border-radius:8px;display:flex;align-items:center;justify-content:center">Cover</div>
+          </div>
+          <div style="flex:1">
+            <h2 style="margin:0">${escapeHtml(b.title)}</h2>
+            <div class="meta">${escapeHtml(b.author)} • ${escapeHtml(cap(b.category))}</div>
+            <p style="margin-top:8px">${escapeHtml(b.desc||'—')}</p>
+            <div style="margin-top:12px;font-weight:700">${formatINR(b.price)}</div>
+            <div style="margin-top:12px;display:flex;gap:8px">
+              <button class="btn" onclick="addToCart('${b.id}')">Add to cart</button>
+              <button class="ghost" onclick="close()">Close</button>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    // search and filters
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const sortBy = document.getElementById('sortBy');
+    const clearBtn = document.getElementById('clearBtn');
+
+    function runFilters(){
+      const q = searchInput.value.trim().toLowerCase();
+      const cat = categoryFilter.value;
+      let list = books.filter(b=>{
+        if(cat!=='all' && b.category!==cat) return false;
+        if(!q) return true;
+        return (b.title+b.author+(b.desc||'')).toLowerCase().includes(q) || (b.id||'').toLowerCase()===q;
+      });
+      if(sortBy.value==='priceLow') list.sort((a,b)=>a.price-b.price);
+      if(sortBy.value==='priceHigh') list.sort((a,b)=>b.price-a.price);
+      if(sortBy.value==='newest') list.sort((a,b)=> (b._added||0) - (a._added||0) );
+      renderBooks(list);
+    }
+
+    searchInput.addEventListener('input', runFilters);
+    categoryFilter.addEventListener('change', runFilters);
+    sortBy.addEventListener('change', runFilters);
+    clearBtn.addEventListener('click', ()=>{ searchInput.value=''; categoryFilter.value='all'; sortBy.value='newest'; runFilters(); });
+
+    // sell book form
+    document.getElementById('sellBtn').addEventListener('click', ()=>{
+      openModal(`
+        <h3>List your book</h3>
+        <form id="sellForm">
+          <div class="row">
+            <input name="title" placeholder="Title" required />
+            <input name="author" placeholder="Author" required />
+            <input name="category" placeholder="Category (e.g., fiction)" required />
+            <input name="price" placeholder="Price (INR)" type="number" required />
+            <input name="condition" placeholder="Condition (Like New / Good)" required />
+            <input name="contact" placeholder="Contact (email or phone)" required />
+            <textarea name="desc" placeholder="Short description" style="grid-column:1/3"></textarea></div>
+      <div style="margin-top:12px;text-align:right"><button class="btn" type="submit">List book</button></div>
+    </form>
+  `);
+  const sellForm = document.getElementById('sellForm');
+  sellForm.addEventListener('submit', (e)=>{
+    e.preventDefault(); const fd = new FormData(sellForm);
+    const newBook = { id: 'b'+Date.now(), title: fd.get('title'), author: fd.get('author'), category: fd.get('category'), price: Number(fd.get('price')||0), condition: fd.get('condition'), desc: fd.get('desc'), _added: Date.now() };
+    books.unshift(newBook); saveBooks(); runFilters(); alert('Book listed locally — it will appear in listings.'); close();
+  });
+});
+
+// simple login/signup modal (client-side only)
+document.getElementById('loginBtn').addEventListener('click', ()=>{
+  openModal(`
+    <h3>Login / Signup</h3>
+    <form id="authForm">
+      <div class="row">
+        <input name="name" placeholder="Full name" required />
+        <input name="email" placeholder="Email" type="email" required />
+        <input name="phone" placeholder="Phone (optional)" />
+        <input name="password" placeholder="Password" type="password" required />
+      </div>
+      <div style="margin-top:12px;text-align:right"><button class="btn" type="submit">Continue</button></div>
+    </form>
+  `);
+  document.getElementById('authForm').addEventListener('submit', (e)=>{
+    e.preventDefault(); const fd=new FormData(e.target); const user = {name:fd.get('name'), email:fd.get('email')};
+    localStorage.setItem('secondleaf_user', JSON.stringify(user)); alert('Logged in locally as '+user.name+' — this demo stores a local profile.'); close();
+  });
+});
+
+// helpers
+function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]; }); }
+function cap(s){ if(!s) return ''; return s.charAt(0).toUpperCase()+s.slice(1); }
+
+// initial: mark _added timestamps if not present
+books.forEach((b,i)=>{ if(!b._added) b._added = Date.now() - i*1000; }); saveBooks();
+
+// initial render
+renderBooks(books);
+renderCart();
+
+// expose for buttons inside HTML
+window.viewBook = viewBook; window.addToCart = addToCart; window.changeQty = changeQty; window.close = close;
+
+  </script>
+</body>
+</html>
